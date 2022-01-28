@@ -17,18 +17,21 @@ def login():
         if user:
             if check_password_hash(user.password, password):
                 flash("Logged in successfully!", category="success")
+                login_user(user, remember=True)
                 return redirect(url_for("views.home"))
             else:
                 flash("Incorrect password, try again", category="error")
         else:
             flash("User with this username doesn't exist", category="error")
 
-    return render_template("login.html")
+    return render_template("login.html", user=current_user)
 
 
 @auth.route("/logout")
+@login_required
 def logout():
-    return "<h1>Logout</h1>"
+    logout_user()
+    return redirect(url_for("auth.login"))
 
 
 @auth.route("/sign-up", methods=["GET", "POST"])
@@ -54,8 +57,9 @@ def sigh_up():
             new_user = User(email=email, username=username, password=generate_password_hash(password1, method="sha256"))
             db.session.add(new_user)
             db.session.commit()
+            login_user(user, remember=True)
             flash("Account created!", category="success")
             return redirect(url_for("views.home"))
 
-    return render_template("sign_up.html")
+    return render_template("sign_up.html", user=current_user)
 
